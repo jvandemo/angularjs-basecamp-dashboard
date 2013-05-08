@@ -12,7 +12,7 @@ angular.module('basecamp', [])
             })
             .when('/projects/:projectId/todolists/:todoListId', {
                 templateUrl: 'templates/todo-list.html',
-                controller: 'ProjectController'
+                controller: 'TodoListController'
             })
     })
 
@@ -228,13 +228,13 @@ angular.module('basecamp', [])
 /**
  * Controller for the home page that displays the project overview
  */
-    .controller('HomeController', function ($scope, $http) {
-    })
+    .controller('HomeController', ['$scope','$http', function ($scope, $http) {
+    }])
 
 /**
  * Controller for the page that displays project details
  */
-    .controller('ProjectController', function ($scope, $http, $routeParams) {
+    .controller('ProjectController', ['$scope','$http', '$routeParams', function ($scope, $http, $routeParams) {
 
         $scope.project = {};
         $scope.activeTodoLists = [];
@@ -330,15 +330,33 @@ angular.module('basecamp', [])
             })
 
         }, true);
-    })
+    }])
 
 /**
  * Controller for the page that shows the todo lists for a certain project
  */
-    .controller('TodoListController', function ($scope, $http, $routeParams) {
+    .controller('TodoListController', ['$scope','$http', '$routeParams', function ($scope, $http, $routeParams) {
+
         $scope.projectId = $routeParams.projectId;
         $scope.todoListId = $routeParams.todoListId;
         $scope.todoList = {};
+
+        $scope.project = $http.get('get.php?url=projects/' + $routeParams.projectId + '.json')
+            .success(function (data, status, headers, config) {
+                console.log('SUCCESS');
+                // this callback will be called asynchronously
+                // when the response is available
+                var project = angular.fromJson(data);
+                if (angular.isObject(project)) {
+                    $scope.project = project;
+                    console.log(project);
+                }
+            }).
+            error(function (data, status, headers, config) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+                console.log('ERROR');
+            })
 
         // Get todo list including todo's
         $scope.todoList = $http.get('get.php?url=projects/' + $routeParams.projectId + '/todolists/' + $routeParams.todoListId + '.json')
@@ -357,4 +375,4 @@ angular.module('basecamp', [])
                 // or server returns response with an error status.
                 console.log('ERROR');
             })
-    });
+    }]);
